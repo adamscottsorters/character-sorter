@@ -19,6 +19,13 @@
       text-align: center;
     }
 
+    #progress {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 0.95rem;
+      color: #cccccc;
+    }
+
     button {
       display: block;
       width: 100%;
@@ -45,6 +52,8 @@
   <h1>Adam Scott Character Sorter</h1>
   <p>Pick your favourite each round.</p>
 
+  <div id="progress"></div>
+
   <div id="sorter">
     <button id="optionA"></button>
     <button id="optionB"></button>
@@ -53,7 +62,7 @@
   <ol id="results" style="display:none;"></ol>
 
   <script>
-    const songs = [
+    const characters = [
       "mark scout (severance)",
       "caleb sinclaire (the vicious kind)",
       "henry pollard (party down)",
@@ -102,11 +111,11 @@
     let matchups = [];
     let current = 0;
 
-    songs.forEach(song => scores[song] = 0);
+    characters.forEach(character => scores[character] = 0);
 
-    for (let i = 0; i < songs.length; i++) {
-      for (let j = i + 1; j < songs.length; j++) {
-        matchups.push([songs[i], songs[j]]);
+    for (let i = 0; i < characters.length; i++) {
+      for (let j = i + 1; j < characters.length; j++) {
+        matchups.push([characters[i], characters[j]]);
       }
     }
 
@@ -116,6 +125,19 @@
     const optionB = document.getElementById("optionB");
     const sorter = document.getElementById("sorter");
     const results = document.getElementById("results");
+    const progress = document.getElementById("progress");
+
+    function updateProgress() {
+      const total = matchups.length;
+      const currentRound = current + 1;
+      const percent = Math.round((current / total) * 100);
+
+      if (current < total) {
+        progress.textContent = `Matchup ${currentRound} of ${total} • ${percent}% completed`;
+      } else {
+        progress.textContent = `Finished! 100% completed`;
+      }
+    }
 
     function showMatchup() {
       if (current >= matchups.length) {
@@ -129,10 +151,12 @@
 
       optionA.onclick = () => pick(a);
       optionB.onclick = () => pick(b);
+
+      updateProgress();
     }
 
-    function pick(song) {
-      scores[song]++;
+    function pick(character) {
+      scores[character]++;
       current++;
       showMatchup();
     }
@@ -140,12 +164,13 @@
     function showResults() {
       sorter.style.display = "none";
       results.style.display = "block";
+      updateProgress();
 
-      const ranked = [...songs].sort((a, b) => scores[b] - scores[a]);
+      const ranked = [...characters].sort((a, b) => scores[b] - scores[a]);
 
-      ranked.forEach(song => {
+      ranked.forEach(character => {
         const li = document.createElement("li");
-        li.textContent = `${song} (${scores[song]} wins)`;
+        li.textContent = `${character} (${scores[character]} wins)`;
         results.appendChild(li);
       });
     }
