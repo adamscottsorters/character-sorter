@@ -11,8 +11,8 @@
       margin: 40px auto;
       padding: 20px;
       line-height: 1.5;
-      background-color: #111111;
-      color: #ffffff;
+      background-color: #ffffff;
+      color: #000000;
     }
 
     h1, p {
@@ -23,7 +23,7 @@
       text-align: center;
       margin: 20px 0;
       font-size: 0.95rem;
-      color: #cccccc;
+      color: #555;
     }
 
     button {
@@ -33,18 +33,47 @@
       padding: 16px;
       font-size: 1rem;
       cursor: pointer;
-      background-color: #ff4da6;
-      color: white;
+      background-color: #e5e5e5;
+      color: #000;
       border: none;
       border-radius: 10px;
     }
 
     button:hover {
-      background-color: #ff80bf;
+      background-color: #d4d4d4;
     }
 
-    #results li {
-      margin: 6px 0;
+    #both {
+      background-color: #dddddd;
+    }
+
+    #both:hover {
+      background-color: #d0d0d0;
+    }
+
+    #noOpinion {
+      background-color: #f2f2f2;
+      font-style: italic;
+    }
+
+    #noOpinion:hover {
+      background-color: #e8e8e8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    td.rank {
+      width: 50px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -57,9 +86,11 @@
   <div id="sorter">
     <button id="optionA"></button>
     <button id="optionB"></button>
+    <button id="both">I like both</button>
+    <button id="noOpinion">No opinion</button>
   </div>
 
-  <ol id="results" style="display:none;"></ol>
+  <table id="results" style="display:none;"></table>
 
   <script>
     const characters = [
@@ -111,7 +142,9 @@
     let matchups = [];
     let current = 0;
 
-    characters.forEach(character => scores[character] = 0);
+    characters.forEach(character => {
+      scores[character] = 0;
+    });
 
     for (let i = 0; i < characters.length; i++) {
       for (let j = i + 1; j < characters.length; j++) {
@@ -123,19 +156,20 @@
 
     const optionA = document.getElementById("optionA");
     const optionB = document.getElementById("optionB");
+    const bothBtn = document.getElementById("both");
+    const noOpinionBtn = document.getElementById("noOpinion");
     const sorter = document.getElementById("sorter");
     const results = document.getElementById("results");
     const progress = document.getElementById("progress");
 
     function updateProgress() {
       const total = matchups.length;
-      const currentRound = current + 1;
       const percent = Math.round((current / total) * 100);
 
       if (current < total) {
-        progress.textContent = `Matchup ${currentRound} of ${total} • ${percent}% completed`;
+        progress.textContent = `${percent}% completed`;
       } else {
-        progress.textContent = `Finished! 100% completed`;
+        progress.textContent = "100% completed";
       }
     }
 
@@ -146,32 +180,56 @@
       }
 
       const [a, b] = matchups[current];
+
       optionA.textContent = a;
       optionB.textContent = b;
 
-      optionA.onclick = () => pick(a);
-      optionB.onclick = () => pick(b);
+      optionA.onclick = () => pickSingle(a);
+      optionB.onclick = () => pickSingle(b);
+      bothBtn.onclick = () => pickBoth(a, b);
+      noOpinionBtn.onclick = () => skipMatchup();
 
       updateProgress();
     }
 
-    function pick(character) {
+    function pickSingle(character) {
       scores[character]++;
+      current++;
+      showMatchup();
+    }
+
+    function pickBoth(a, b) {
+      scores[a]++;
+      scores[b]++;
+      current++;
+      showMatchup();
+    }
+
+    function skipMatchup() {
       current++;
       showMatchup();
     }
 
     function showResults() {
       sorter.style.display = "none";
-      results.style.display = "block";
+      results.style.display = "table";
       updateProgress();
 
       const ranked = [...characters].sort((a, b) => scores[b] - scores[a]);
 
-      ranked.forEach(character => {
-        const li = document.createElement("li");
-        li.textContent = `${character} (${scores[character]} wins)`;
-        results.appendChild(li);
+      ranked.forEach((character, index) => {
+        const row = document.createElement("tr");
+
+        const rankCell = document.createElement("td");
+        rankCell.textContent = index + 1;
+        rankCell.className = "rank";
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = character;
+
+        row.appendChild(rankCell);
+        row.appendChild(nameCell);
+        results.appendChild(row);
       });
     }
 
